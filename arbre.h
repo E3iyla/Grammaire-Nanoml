@@ -1,6 +1,7 @@
 #ifndef ARBRE_H
 #define ARBRE_H
 
+// L'énumération de toutes nos balises
 typedef enum {
     DOC_OPEN, DOC_CLOSE,
     SEC_OPEN, SEC_CLOSE,
@@ -11,13 +12,17 @@ typedef enum {
     BR,
     MOT,
     FIN_FICHIER
-} Jeton;
+} t_jeton;
 
+// La structure de notre arbre
 typedef struct Noeud {
-    Jeton type;
-    char valeur[512];              // Pour stocker le texte des MOTS ou TITRES
-    struct Noeud* premier_fils;    // Pointeur vers le premier enfant (en dessous)
-    struct Noeud* frere_suivant;   // Pointeur vers l'élément suivant (à côté)
+    t_jeton type;
+    char valeur[512];
+    struct Noeud* premier_fils;
+    struct Noeud* frere_suivant;
 } Noeud;
+
+// Le prototype pour créer un noeud
+Noeud* creer_noeud(t_jeton type);
 
 #endif

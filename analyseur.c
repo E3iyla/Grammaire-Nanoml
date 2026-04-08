@@ -1,92 +1,111 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "analyseur.h"
+#include <string.h>
 
-// Prototypes pour la récursion
-Noeud* parse_items();
+// Déclaration de la fonction venant de arbre.c
+Noeud* creer_noeud(t_jeton type);
+
+// Prototypes locaux
+Noeud* parse_document();
 Noeud* parse_annexes();
+Noeud* parse_contenu();
+Noeud* parse_items();
 
-// Point d'entrée principal
+// Point de départ de l'analyse
 Noeud* parse_texte_enrichi() {
+    //  Lit le document principal
     Noeud* racine = parse_document();
-    if (jeton_courant == ANN_OPEN) {
+
+    //Ajoute les annexes à côté (en tant que frère)
+    if (mon_jeton == ANN_OPEN) {
         racine->frere_suivant = parse_annexes();
     }
     return racine;
 }
 
+// Analyse de <document>
+Noeud* parse_document() {
+    consommer_jeton(DOC_OPEN);          // <document>
+    Noeud* n = creer_noeud(DOC_OPEN);
+         n->premier_fils = parse_contenu();  // Descend pour lire le contenu
+    
+    consommer_jeton(DOC_CLOSE);         // </document>
+    return n;
+}
+
+// Analyse de <annexe>
 Noeud* parse_annexes() {
-    if (jeton_courant == ANN_OPEN) {
-        verifier(ANN_OPEN);
+    if (mon_jeton == ANN_OPEN) {
+        consommer_jeton(ANN_OPEN);          // <annexe>
         Noeud* n = creer_noeud(ANN_OPEN);
+        
         n->premier_fils = parse_contenu();
-        verifier(ANN_CLOSE);
+        
+        consommer_jeton(ANN_CLOSE);         // </annexe>
+
+        // Passe à l'annexe suivante s'il y en a une
         n->frere_suivant = parse_annexes();
         return n;
     }
     return NULL;
 }
 
+// Analyse du contenu général
 Noeud* parse_contenu() {
-    // On vérifie si le jeton actuel peut démarrer du contenu
-    if (jeton_courant == MOT || jeton_courant == SEC_OPEN || 
-        jeton_courant == TITRE_OPEN || jeton_courant == BR || jeton_courant == LISTE_OPEN) {
+    // Vérifie si le jeton est autorisé dans le contenu
+    if (mon_jeton == MOT || mon_jeton == SEC_OPEN || 
+        mon_jeton == TITRE_OPEN || mon_jeton == BR || mon_jeton == LISTE_OPEN) {
         
         Noeud* n = NULL;
         
-        if (jeton_courant == MOT) {
+        if (mon_jeton == MOT) {
             n = creer_noeud(MOT);
-            // Copie de la valeur textuelle depuis analyseur.h
-            strcpy(n->valeur, valeur_courante); 
-            suivant();
+            strcpy(n->valeur, mon_mot); // Copie le texte du mot
+            lire_jeton();
         } 
-        else if (jeton_courant == BR) {
+        else if (mon_jeton == BR) {
             n = creer_noeud(BR);
-            suivant();
+            lire_jeton();
         } 
-        else if (jeton_courant == SEC_OPEN) {
-            verifier(SEC_OPEN);
-            n = creer_noeud(SEC_OPEN);
+        else if  (mon_jeton == SEC_OPEN){
+            consommer_jeton(SEC_OPEN);
+            n =  creer_noeud(SEC_OPEN);
             n->premier_fils = parse_contenu();
-            verifier(SEC_CLOSE);
+            consommer_jeton(SEC_CLOSE);
         } 
-        else if (jeton_courant == TITRE_OPEN) {
-            verifier(TITRE_OPEN);
-            n = creer_noeud(TITRE_OPEN);
+        else if (mon_jeton == TITRE_OPEN){
+            consommer_jeton(TITRE_OPEN);
+            n= creer_noeud(TITRE_OPEN);
             n->premier_fils = parse_contenu();
-            verifier(TITRE_CLOSE);
+            consommer_jeton(TITRE_CLOSE);
         } 
-        else if (jeton_courant == LISTE_OPEN) {
-            verifier(LISTE_OPEN);
-            n = creer_noeud(LISTE_OPEN);
+        else if (mon_jeton == LISTE_OPEN){
+            consommer_jeton(LISTE_OPEN);
+            n =creer_noeud(LISTE_OPEN);
             n->premier_fils = parse_items();
-            verifier(LISTE_CLOSE);
+            consommer_jeton(LISTE_CLOSE);
         }
         
-        // Récursion pour lire la suite du contenu au même niveau
-        if (n) n->frere_suivant = parse_contenu();
+        // Lit la suite du contenu au même niveau
+        if (n != NULL) {
+            n->frere_suivant = parse_contenu();
+        }
         return n;
     }
     return NULL;
 }
 
 Noeud* parse_items() {
-    if (jeton_courant == ITEM_OPEN) {
-        verifier(ITEM_OPEN);
+    if (mon_jeton == ITEM_OPEN) {
+        consommer_jeton(ITEM_OPEN);          // <item>
         Noeud* n = creer_noeud(ITEM_OPEN);
+        
         n->premier_fils = parse_contenu();
-        verifier(ITEM_CLOSE);
+        
+        consommer_jeton(ITEM_CLOSE);         // </item>
+
+        // Passe au prochain item de la liste
         n->frere_suivant = parse_items();
         return n;
     }
     return NULL;
-}
-
-Noeud* parse_document() {
-    verifier(DOC_OPEN);
-    Noeud* n = creer_noeud(DOC_OPEN);
-    n->premier_fils = parse_contenu();
-    verifier(DOC_CLOSE);
-    return n;
 }

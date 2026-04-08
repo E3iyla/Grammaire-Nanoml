@@ -1,0 +1,64 @@
+# Projet Nanoml 
+
+Nanoml prend en entrée un fichier texte utilisant une grammaire personnalisée(inspirée du HTML) et génère une représentation visuelle sous forme de boîtes imbriquées en ASCII dans le terminal.
+
+---
+
+## Fonctionnalités
+
+- **Analyse lexicale et syntaxique** : Lecture du fichier source et identification des balises avec jetons.
+- **Arbre** : Construction d'une structure de données en mémoire pour représenter l'imbrication des éléments (documents, sections, listes...).
+- **Rendu** : Affichage formaté en console avec des bordures (`+---+`) limitées à une largeur stricte de 50 caractères.
+
+---
+
+## Structure du Projet
+
+Le code est divisé en plusieurs composants :
+
+* `main.c` : Point d'entrée du programme qui va gèrer l'ouverture du fichier avec l'analyse puis le rendu
+* `lexique.c` et `lexique.h` : Consomme les caractères et génère les jetons (balises ou mots).
+* `analyseur.c` et `analyseur.h` : Vérifie la syntaxe et construit l'arbre.
+* `arbre.c` et `arbre.h` : Définition des structures de données (Nœuds) et fonctions d'allocation mémoire.
+* `rendu.c` et `rendu.h` : Parcours de l'arbre N-aire et logique d'affichage des boîtes ASCII.
+
+-
+
+## Compilation et Exécution
+
+Le projet utilise un `Makefile` pour simplifier la compilation.
+
+### Compiler le projet
+Ouvrez votre terminal à la racine du projet et tapez :
+    make
+
+Après avoir générer l'executable **nanoml.exe**
+
+### Executer le projet
+On peut executer le programme avec la commande: **./nanoml.exe test.txt**
+
+
+
+### Exemple de fichier test
+<document>
+  <section>
+    <titre> Titre de section </titre>
+    Bonjour le monde. <br/>
+    Ceci est un test.
+  </section>
+</document>
+
+### rendu généré 
++------------------------------------------------+
+| +--------------------------------------------+ |
+| | TITRE DE SECTION                           | |
+| | Bonjour le monde.                          | |
+| | Ceci est un test.                          | |
+| +--------------------------------------------+ |
++------------------------------------------------+
+
+
+
+
+
+Projet Sena & Jade
